@@ -5,7 +5,7 @@
 The patient taps one big button and asks a question. SMRITI answers aloud, only from facts the caregiver approved. If it doesn't know, it says so. Built for the **Great Indian AI Internship Challenge** with **Gnani Prisma** (speech-to-text) and **Gnani Timbre** (text-to-speech).
 
 📄 Read the one-page pitch: [PITCH.md](PITCH.md)
-🎥 Idea video: *add link*  ·  🎥 Demo video: *add link*  ·  🔗 LinkedIn post: *add link*
+🎥 Demo video: [(https://drive.google.com/file/d/13nc48SH-2eQ5vfQkRcdBA62kFSbbfq_g/view?usp=sharing)]  ·  🔗 LinkedIn post: [https://lnkd.in/p/grz7-yW7]
 
 > SMRITI is a communication aid. It is not medical advice and does not replace caregivers. All data in this repo and demo is synthetic.
 
@@ -113,24 +113,23 @@ backend/
   intent.py        understands what the patient asked (EN/HI/KN/TA, code-mixed)
   engine.py        builds the reply from approved facts
   create_mira.py   creates the synthetic demo account
+  config.py
+  gnani_client.py
+  responses.py
+  smriti_v2.db
+  requirements.txt
   tests/           automated tests
 ```
-*(Adjust file names to match your folder.)*
 
 ## Limitations and honest notes
 - The Hindi and Kannada wording, and the many ways people spell code-mixed words, still need review by native speakers.
 - Caregiver facts are spoken as typed, not translated. Write them in the patient's language.
-- Only the first two memories of each kind are spoken per question.
 - Speech recognition depends on the microphone, noise and accent.
 - Not medical advice. Not for emergencies: if someone is in danger, call local emergency services.
 
 ## Responsible AI
 - Answers come only from caregiver-approved facts, never invented.
-- No voice cloning.
 - Synthetic data only. Do not upload real patient information to a public demo.
 
 ## Credits
-Built by **Libs** for the Great Indian AI Internship Challenge. Speech technology by **Gnani.ai** (Prisma and Timbre).
-
-## License
-Add a license of your choice (for example MIT) before making the repo public.
+Built by **Libini** for the Great Indian AI Internship Challenge. Speech technology by **Gnani.ai** (Prisma and Timbre).
