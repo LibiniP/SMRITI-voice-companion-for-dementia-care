@@ -4,7 +4,7 @@
 
 The patient taps one big button and asks a question. SMRITI answers aloud, only from facts the caregiver approved. If it doesn't know, it says so. Built for the **Great Indian AI Internship Challenge** with **Gnani Prisma** (speech-to-text) and **Gnani Timbre** (text-to-speech).
 
-📄 Read the one-page pitch: [PITCH.md](PITCH.md)
+📄 Read the one-page pitch: [PITCH.pdf](PITCH.pdf)
 🎥 Demo video: [(https://drive.google.com/file/d/13nc48SH-2eQ5vfQkRcdBA62kFSbbfq_g/view?usp=sharing)]  ·  🔗 LinkedIn post: [https://lnkd.in/p/grz7-yW7]
 
 > SMRITI is a communication aid. It is not medical advice and does not replace caregivers. All data in this repo and demo is synthetic.
