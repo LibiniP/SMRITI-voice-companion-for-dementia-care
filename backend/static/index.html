@@ -1,0 +1,734 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SMRITI</title>
+<style>
+  :root {
+    --bg1:#fdf8ef; --bg2:#e9f3ef; --ink:#23302c; --muted:#6a7873; --line:#e3e9e5;
+    --card:#ffffff; --accent:#1f7a65; --accent-d:#155a4a; --accent-soft:#e3f2ed;
+    --warn:#c0392b; --warn-soft:#fdeceb; --amber:#b86e00; --amber-soft:#fff2dc;
+    --radius:20px; --shadow:0 10px 30px rgba(31,80,66,.10);
+  }
+  * { box-sizing:border-box; }
+  html { -webkit-text-size-adjust:100%; }
+  body {
+    margin:0; color:var(--ink); min-height:100vh;
+    font-family: "Segoe UI", system-ui, -apple-system, "Noto Sans", "Noto Sans Kannada", "Noto Sans Tamil", "Noto Sans Devanagari", sans-serif;
+    background: radial-gradient(1200px 600px at 10% -10%, var(--bg1), transparent 60%),
+                radial-gradient(900px 500px at 100% 0%, var(--bg2), transparent 55%), #f7faf8;
+  }
+  .hidden { display:none !important; }
+
+  /* ---------- header ---------- */
+  header { position:sticky; top:0; z-index:10; display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;
+           padding:12px 22px; background:rgba(255,255,255,.82); backdrop-filter:blur(10px); border-bottom:1px solid var(--line); }
+  .brand { display:flex; align-items:center; gap:12px; }
+  .logo { width:42px; height:42px; border-radius:14px; display:grid; place-items:center; color:#fff; font-weight:700; font-size:1.25rem;
+          background:linear-gradient(135deg,#2a9d83,#155a4a); box-shadow:0 6px 16px rgba(21,90,74,.35); }
+  .brand h1 { margin:0; font-size:1.25rem; letter-spacing:.18em; color:var(--accent-d); }
+  .brand small { display:block; color:var(--muted); font-size:.78rem; letter-spacing:0; margin-top:1px; }
+  .hright { display:flex; align-items:center; gap:12px; }
+  nav { display:flex; gap:4px; padding:4px; background:#edf3f0; border-radius:14px; }
+  nav button { font:inherit; font-size:.95rem; font-weight:600; padding:9px 18px; border:0; border-radius:11px; background:transparent; color:var(--muted); cursor:pointer; transition:.15s; }
+  nav button.active { background:#fff; color:var(--accent-d); box-shadow:0 2px 8px rgba(0,0,0,.08); }
+  #who { display:flex; align-items:center; gap:8px; font-size:.88rem; color:var(--muted); }
+  #who b { color:var(--ink); }
+
+  main { max-width:980px; margin:0 auto; padding:26px 20px 60px; }
+
+  /* ---------- auth + setup ---------- */
+  .authcard { max-width:440px; margin:34px auto; text-align:center; }
+  .authcard h2, .setup h2 { margin:6px 0 4px; font-size:1.5rem; }
+  .authcard .lead, .setup .lead { color:var(--muted); margin:0 0 14px; }
+  .seg { display:flex; gap:4px; padding:4px; background:#edf3f0; border-radius:14px; margin:14px 0 6px; }
+  .seg button { flex:1; font:inherit; font-weight:600; padding:10px; border:0; border-radius:11px; background:transparent; color:var(--muted); cursor:pointer; }
+  .seg button.active { background:#fff; color:var(--accent-d); box-shadow:0 2px 8px rgba(0,0,0,.08); }
+  .authcard label { text-align:left; }
+  .authcard input { width:100%; }
+  .setup { max-width:720px; margin:20px auto; }
+  .setup .bigrow { display:flex; gap:12px; flex-wrap:wrap; margin-top:10px; }
+  .setup .bigrow .btn { flex:1 1 220px; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:0 14px; }
+  @media (max-width:560px) { .grid2 { grid-template-columns:1fr; } }
+  .sect { margin:18px 0 4px; font-weight:700; color:var(--accent-d); border-top:1px solid var(--line); padding-top:14px; }
+  .hint { color:var(--muted); font-size:.85rem; margin:2px 0 0; }
+
+  /* ---------- patient ---------- */
+  #patient { text-align:center; }
+  .hello { font-size:clamp(1.9rem,5vw,2.6rem); font-weight:700; margin:6px 0 2px; letter-spacing:-.01em; }
+  .sub { color:var(--muted); font-size:1.1rem; margin-bottom:18px; }
+
+  .pills { display:inline-flex; flex-wrap:wrap; justify-content:center; gap:8px; margin-bottom:26px; }
+  .pill { font:inherit; font-size:1rem; padding:9px 18px; border-radius:99px; border:1.5px solid var(--line); background:#fff; color:var(--ink); cursor:pointer; transition:.15s; }
+  .pill:hover { border-color:var(--accent); }
+  .pill.active { background:var(--accent); border-color:var(--accent); color:#fff; box-shadow:0 6px 14px rgba(31,122,101,.3); }
+
+  .micwrap { position:relative; width:min(64vw,270px); height:min(64vw,270px); margin:6px auto 8px; display:grid; place-items:center; }
+  .micwrap::before, .micwrap::after { content:""; position:absolute; inset:0; border-radius:50%; background:var(--accent); opacity:0; }
+  .listening .micwrap::before { animation:ring 1.8s ease-out infinite; background:var(--warn); }
+  .listening .micwrap::after  { animation:ring 1.8s ease-out .9s infinite; background:var(--warn); }
+  @keyframes ring { 0% { transform:scale(1); opacity:.35; } 100% { transform:scale(1.55); opacity:0; } }
+  #mic { position:relative; z-index:1; width:100%; height:100%; border-radius:50%; border:0; cursor:pointer; color:#fff;
+         font:inherit; font-size:1.35rem; font-weight:700; line-height:1.3; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
+         background:radial-gradient(circle at 30% 25%, #3bb597, #1f7a65 55%, #155a4a);
+         box-shadow:0 18px 40px rgba(21,90,74,.38), inset 0 -6px 14px rgba(0,0,0,.12); transition:transform .12s; }
+  #mic:hover { transform:scale(1.03); }
+  #mic:active { transform:scale(.97); }
+  #mic .icon { font-size:3.2rem; line-height:1; }
+  #mic.rec { background:radial-gradient(circle at 30% 25%, #e8695b, #c0392b 55%, #922b21); box-shadow:0 18px 40px rgba(192,57,43,.4); }
+  #mic:disabled { background:#9db9b1; cursor:wait; box-shadow:none; }
+
+  #status { font-size:1.25rem; min-height:1.8em; margin:16px 0 8px; color:var(--muted); font-weight:500; }
+  .thinking #status::after { content:" ●●●"; letter-spacing:2px; animation:blink 1.2s infinite; }
+  @keyframes blink { 50% { opacity:.2; } }
+
+  .chat { max-width:780px; margin:8px auto 0; display:flex; flex-direction:column; gap:14px; text-align:left; }
+  .bubble-you { align-self:flex-end; max-width:85%; background:#fff; border:1px solid var(--line); color:var(--muted); padding:10px 16px; border-radius:18px 18px 4px 18px; font-size:1.05rem; }
+  .bubble-you:empty { display:none; }
+  .bubble-ai { display:flex; gap:14px; align-items:flex-start; }
+  .avatar { flex:none; width:52px; height:52px; border-radius:50%; display:grid; place-items:center; color:#fff; font-weight:700; font-size:1.3rem;
+            background:linear-gradient(135deg,#2a9d83,#155a4a); position:relative; }
+  .speaking .avatar::after { content:""; position:absolute; inset:-6px; border-radius:50%; border:3px solid var(--accent); animation:ring 1.2s ease-out infinite; }
+  #reply { flex:1; background:var(--card); border:1px solid var(--line); border-radius:4px 22px 22px 22px; padding:20px 24px; box-shadow:var(--shadow);
+           font-size:clamp(1.5rem,4.2vw,2rem); line-height:1.45; }
+  #replay { margin:16px auto 0; display:inline-flex; align-items:center; gap:10px; font:inherit; font-size:1.2rem; font-weight:600; padding:14px 28px;
+            border-radius:16px; border:2px solid var(--accent); background:#fff; color:var(--accent-d); cursor:pointer; transition:.15s; }
+  #replay:hover { background:var(--accent-soft); }
+  .disclose { margin:28px auto 0; max-width:520px; font-size:.92rem; color:var(--muted); background:rgba(255,255,255,.7); border:1px dashed #cfdad5; padding:10px 16px; border-radius:14px; }
+  details { margin:16px auto 0; max-width:560px; color:var(--muted); text-align:left; }
+  details summary { cursor:pointer; text-align:center; font-size:.92rem; }
+  details form { display:flex; gap:8px; margin-top:10px; }
+  details input { flex:1; }
+
+  /* ---------- shared form bits ---------- */
+  select, input, textarea { font:inherit; padding:11px 13px; border:1.5px solid var(--line); border-radius:12px; background:#fff; max-width:100%; color:var(--ink); }
+  select:focus, input:focus, textarea:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+  label { display:block; font-size:.82rem; font-weight:600; color:var(--muted); margin:12px 0 5px; }
+  .btn { font:inherit; font-size:.95rem; font-weight:600; padding:10px 18px; border-radius:12px; border:0; background:var(--accent); color:#fff; cursor:pointer; transition:.15s; }
+  .btn:hover { background:var(--accent-d); }
+  .btn.big { font-size:1.05rem; padding:14px 22px; border-radius:14px; }
+  .btn.ghost { background:#fff; color:var(--ink); border:1.5px solid var(--line); }
+  .btn.ghost:hover { border-color:var(--accent); background:var(--accent-soft); }
+  .btn.danger { background:#fff; color:var(--warn); border:1.5px solid #f0c4bf; }
+  .btn.danger:hover { background:var(--warn-soft); }
+  .errtext { color:var(--warn); font-size:.9rem; min-height:1.3em; margin:8px 0 0; }
+
+  /* ---------- caregiver ---------- */
+  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:18px; }
+  .stat { background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:16px 18px; box-shadow:var(--shadow); }
+  .stat b { display:block; font-size:1.9rem; line-height:1.1; }
+  .stat span { color:var(--muted); font-size:.85rem; }
+  .stat.alert b { color:var(--warn); }
+  .tabs { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; }
+  .tabs button { font:inherit; font-size:.95rem; font-weight:600; padding:10px 16px; border:1.5px solid var(--line); background:#fff; border-radius:12px; cursor:pointer; color:var(--muted); }
+  .tabs button.active { background:var(--ink); border-color:var(--ink); color:#fff; }
+  .tabs .badge { display:inline-block; min-width:20px; padding:1px 6px; margin-left:6px; border-radius:99px; background:var(--warn); color:#fff; font-size:.75rem; }
+
+  .card { background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:18px; margin-bottom:12px; box-shadow:var(--shadow); }
+  .card.lvl-high-card { border-left:6px solid var(--warn); } .card.lvl-medium-card { border-left:6px solid var(--amber); } .card.lvl-low-card { border-left:6px solid var(--accent); }
+  .banner { background:var(--amber-soft); border-color:#f3d9a8; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .row > * { flex:0 1 auto; }
+  .grow { flex:1 1 220px !important; }
+  .item { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; flex-wrap:wrap; }
+  .off { opacity:.45; }
+  .tag { display:inline-block; padding:3px 11px; border-radius:99px; font-size:.75rem; font-weight:700; letter-spacing:.03em; background:var(--accent-soft); color:var(--accent-d); margin-right:8px; text-transform:uppercase; }
+  .tag.lvl-high { background:var(--warn-soft); color:var(--warn); } .tag.lvl-medium { background:var(--amber-soft); color:var(--amber); } .tag.lvl-low { background:var(--accent-soft); color:var(--accent-d); }
+  .muted { color:var(--muted); font-size:.9rem; margin-top:4px; }
+  .empty { text-align:center; padding:34px; color:var(--muted); }
+
+  #toast { position:fixed; bottom:22px; left:50%; transform:translateX(-50%); background:var(--ink); color:#fff; padding:12px 20px; border-radius:14px; display:none; max-width:90vw; box-shadow:0 10px 30px rgba(0,0,0,.25); z-index:50; }
+  @media (max-width:560px) { header { padding:10px 14px; } .brand small { display:none; } nav button { padding:8px 12px; } #reply { padding:16px 18px; } .avatar { width:42px; height:42px; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div class="logo">S</div>
+    <div><h1>SMRITI</h1><small>A familiar voice that remembers what matters</small></div>
+  </div>
+  <div class="hright">
+    <nav id="mainNav" class="hidden">
+      <button id="navPatient" class="active">Patient</button>
+      <button id="navCare">Caregiver</button>
+    </nav>
+    <div id="who" class="hidden"><span>Caregiver <b id="whoName"></b></span><button class="btn ghost" id="logout">Log out</button></div>
+  </div>
+</header>
+
+<main>
+<!-- ========== LOGIN / SIGN UP ========== -->
+<section id="auth">
+  <div class="card authcard">
+    <div style="font-size:2.2rem">👋</div>
+    <h2>Welcome to SMRITI</h2>
+    <p class="lead">Caregivers log in here. Your name and PIN decide which patient is loaded.</p>
+    <div class="seg"><button id="segLogin" class="active">Log in</button><button id="segSignup">Create account</button></div>
+    <label for="aName">Your name</label>
+    <input id="aName" autocomplete="username" placeholder="e.g. Priya">
+    <label for="aPin">PIN (4 to 8 digits)</label>
+    <div class="row" style="flex-wrap:nowrap">
+      <input id="aPin" type="password" inputmode="numeric" autocomplete="current-password" placeholder="••••" style="flex:1;min-width:0">
+      <button type="button" class="btn ghost" id="pinEye" style="flex:none">Show</button>
+    </div>
+    <div class="errtext" id="aErr"></div>
+    <p><button class="btn big" id="aGo" style="width:100%">Log in</button></p>
+    <p class="muted" id="demoHint">Trying the demo? Name <b>demo</b>, PIN <b>1234</b>.</p>
+  </div>
+</section>
+
+<!-- ========== SETUP (optional, right after sign-up or from the dashboard) ========== -->
+<section id="onboard" class="hidden">
+  <div class="card setup" id="obAsk">
+    <div style="font-size:2rem">🌿</div>
+    <h2>Welcome, <span id="obWho"></span></h2>
+    <p class="lead">Would you like to tell SMRITI about the patient now? It helps the assistant answer with the right names, memories and routines. You can also do it later from the Caregiver area.</p>
+    <div class="bigrow">
+      <button class="btn big" id="obNow">Fill details now</button>
+      <button class="btn ghost big" id="obLater">Do it later</button>
+    </div>
+  </div>
+
+  <div class="card setup hidden" id="obForm">
+    <h2>About the patient</h2>
+    <p class="lead">Everything here is optional. Skip anything you are unsure about. Only information you enter here is ever spoken.</p>
+
+    <div class="grid2">
+      <div><label>Patient's name</label><input id="oName" style="width:100%"></div>
+      <div><label>What should the assistant call them?</label><input id="oNick" style="width:100%" placeholder="e.g. Amma, Lakshmi"></div>
+    </div>
+    <div class="grid2">
+      <div><label>Language they speak most</label>
+        <select id="oLang" style="width:100%"><option value="en-IN">English</option><option value="hi-IN">हिन्दी (Hindi)</option><option value="kn-IN">ಕನ್ನಡ (Kannada)</option><option value="ta-IN">தமிழ் (Tamil)</option></select></div>
+      <div><label>Where do they live? (said when they feel lost)</label><input id="oLoc" style="width:100%" placeholder="You are at home."></div>
+    </div>
+
+    <div class="sect">An important family member</div>
+    <div class="grid2">
+      <div><label>Name</label><input id="oFName" style="width:100%"></div>
+      <div><label>Relation</label>
+        <select id="oFRel" style="width:100%"><option>daughter</option><option>son</option><option>wife</option><option>husband</option><option>mother</option><option>father</option><option>brother</option><option>sister</option><option>grandchild</option></select></div>
+    </div>
+    <label>One short, kind sentence about them</label>
+    <input id="oFAbout" style="width:100%" placeholder="She visits on Sundays.">
+    <p class="hint">You can add more people later.</p>
+
+    <div class="sect">Things they love</div>
+    <div class="grid2">
+      <div><label>Favourite food</label><input id="oFood" style="width:100%" placeholder="dosa with coconut chutney"></div>
+      <div><label>Favourite songs or music</label><input id="oSong" style="width:100%" placeholder="old Kannada film songs"></div>
+      <div><label>Favourite place</label><input id="oPlace" style="width:100%" placeholder="the temple near home"></div>
+      <div><label>Hobby</label><input id="oHobby" style="width:100%" placeholder="gardening"></div>
+    </div>
+    <label>Something special about them</label>
+    <input id="oSpecial" style="width:100%" placeholder="You were a school teacher for many years.">
+    <p class="hint">SMRITI turns these short answers into full sentences in the language you chose above.</p>
+
+    <div class="errtext" id="oErr"></div>
+    <div class="row" style="margin-top:8px">
+      <button class="btn big" id="obSave">Save and continue</button>
+      <button class="btn ghost big" id="obSkip">Skip for now</button>
+    </div>
+  </div>
+</section>
+
+<!-- ========== PATIENT ========== -->
+<section id="patient" class="hidden">
+  <div class="hello" id="greet">Hello</div>
+  <div class="sub">Tap the button and talk to me.</div>
+
+  <input type="hidden" id="lang" value="auto">
+  <div class="pills" id="pills">
+    <button class="pill active" data-v="auto">Auto</button>
+    <button class="pill" data-v="en-IN">English</button>
+    <button class="pill" data-v="hi-IN">हिन्दी</button>
+    <button class="pill" data-v="kn-IN">ಕನ್ನಡ</button>
+    <button class="pill" data-v="ta-IN">தமிழ்</button>
+  </div>
+
+  <div class="micwrap"><button id="mic"><span class="icon">🎤</span><span id="micText">Tap to speak</span></button></div>
+  <div style="text-align:center;margin:4px 0"><button id="endConvo" class="btn big ghost hidden">⏹ Stop talking</button></div>
+  <div id="status"></div>
+
+  <div class="chat">
+    <div class="bubble-you" id="heard"></div>
+    <div class="bubble-ai hidden" id="replyWrap">
+      <div class="avatar">S</div>
+      <div id="reply"></div>
+    </div>
+  </div>
+  <button id="replay" class="hidden">🔊 Hear it again</button>
+
+  <div class="disclose">SMRITI is an AI voice assistant. It is not a real person, and it cannot call or visit anyone.</div>
+  <details>
+    <summary>Type instead (for testing)</summary>
+    <form id="typeForm"><input id="typeBox" placeholder="e.g. Where is my daughter?"><button class="btn">Send</button></form>
+  </details>
+</section>
+
+<!-- ========== CAREGIVER ========== -->
+<section id="care" class="hidden">
+  <div id="pinGate" class="card authcard hidden">
+    <div style="font-size:2rem">🔒</div>
+    <h2>Caregiver area</h2>
+    <p class="lead">Enter your PIN to continue.</p>
+    <input id="gatePin" type="password" inputmode="numeric" placeholder="PIN">
+    <div class="errtext" id="gateErr"></div>
+    <p><button class="btn big" id="gateBtn" style="width:100%">Unlock</button></p>
+  </div>
+  <div id="careBody" class="hidden">
+    <div id="setupBanner"></div>
+    <div class="tabs" id="tabs"></div>
+    <div id="tabContent"></div>
+  </div>
+</section>
+</main>
+<div id="toast"></div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+let token = "", me = null, lastAudio = null, setupReturn = "patient";
+
+/* ---------------- small helpers ---------------- */
+function store(k, v) { try { v === null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} }
+function load(k) { try { return localStorage.getItem(k) || ""; } catch (e) { return ""; } }
+function toast(msg) { const t = $("toast"); t.textContent = msg; t.style.display = "block"; clearTimeout(toast.t); toast.t = setTimeout(() => t.style.display = "none", 3500); }
+function esc(s) { return String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c])); }
+
+async function api(path, opts = {}) {
+  opts.headers = Object.assign({ "X-Auth-Token": token }, opts.headers || {});
+  if (opts.body && typeof opts.body === "object" && !(opts.body instanceof FormData)) {
+    opts.headers["Content-Type"] = "application/json"; opts.body = JSON.stringify(opts.body);
+  }
+  const r = await fetch(path, opts);
+  if (!r.ok) {
+    let d = ""; try { d = (await r.json()).detail; } catch (e) {}
+    if (r.status === 401 && token && !path.startsWith("/auth/")) { forceLogout("Please log in again."); }
+    const err = new Error(d || r.statusText); err.status = r.status; throw err;
+  }
+  return r.json();
+}
+
+/* ---------------- screens ---------------- */
+const SCREENS = ["auth", "onboard", "patient", "care"];
+function screen(name) {
+  if (name !== "patient" && typeof convo !== "undefined" && convo) endConvo("");
+  SCREENS.forEach(s => $(s).classList.toggle("hidden", s !== name));
+  const inApp = name === "patient" || name === "care";
+  $("mainNav").classList.toggle("hidden", !inApp);
+  $("who").classList.toggle("hidden", name === "auth");
+  $("navPatient").classList.toggle("active", name === "patient");
+  $("navCare").classList.toggle("active", name === "care");
+}
+function forceLogout(msg) {
+  token = ""; me = null; store("smriti_token", null); screen("auth"); if (msg) toast(msg);
+}
+function applyMe(d) {
+  me = d; $("whoName").textContent = d.name;
+  const nm = d.patient.nickname || d.patient.name;
+  $("greet").textContent = nm ? "Hello, " + nm : "Hello";
+  $("obWho").textContent = d.name;
+  if (!d.patient.keep_talking && convo) endConvo("");
+  idleLabel();
+}
+
+/* ---------------- login / sign up ---------------- */
+let mode = "login";
+function setMode(m) {
+  mode = m;
+  $("segLogin").classList.toggle("active", m === "login"); $("segSignup").classList.toggle("active", m === "signup");
+  $("aGo").textContent = m === "login" ? "Log in" : "Create account";
+  $("aPin").autocomplete = m === "login" ? "current-password" : "new-password";
+  $("demoHint").classList.toggle("hidden", m === "signup"); $("aErr").textContent = "";
+}
+$("segLogin").onclick = () => setMode("login");
+$("segSignup").onclick = () => setMode("signup");
+["aName", "aPin"].forEach(id => $(id).addEventListener("keydown", (e) => { if (e.key === "Enter") $("aGo").click(); }));
+
+$("pinEye").onclick = () => {
+  const show = $("aPin").type === "password";
+  $("aPin").type = show ? "text" : "password"; $("pinEye").textContent = show ? "Hide" : "Show";
+};
+
+$("aGo").onclick = async () => {
+  $("aErr").textContent = "";
+  if (!$("aName").value.trim()) { $("aErr").textContent = "Please type your name first."; $("aName").focus(); return; }
+  if (!$("aPin").value) { $("aErr").textContent = "Please type your PIN."; $("aPin").focus(); return; }
+  try {
+    const d = await api("/auth/" + (mode === "login" ? "login" : "signup"), { method: "POST", body: { name: $("aName").value, pin: $("aPin").value } });
+    token = d.token; store("smriti_token", token); applyMe(d); $("aPin").value = ""; tab = "Alerts";
+    if (d.first_time) { $("obAsk").classList.remove("hidden"); $("obForm").classList.add("hidden"); setupReturn = "patient"; screen("onboard"); }
+    else screen("patient");
+  } catch (e) { $("aErr").textContent = e.message; }
+};
+$("logout").onclick = async () => { try { await api("/auth/logout", { method: "POST" }); } catch (e) {} forceLogout(); };
+
+/* ---------------- setup: now or later ---------------- */
+$("obLater").onclick = () => screen("patient");
+$("obNow").onclick = () => openSetupForm();
+$("obSkip").onclick = () => screen(setupReturn);
+function openSetupForm() {
+  const p = me.patient;
+  $("oName").value = p.name || ""; $("oNick").value = p.nickname || ""; $("oLang").value = p.preferred_language || "en-IN";
+  $("obAsk").classList.add("hidden"); $("obForm").classList.remove("hidden"); $("oErr").textContent = ""; screen("onboard");
+}
+$("obSave").onclick = async () => {
+  try {
+    const r = await api("/api/me/onboarding", { method: "POST", body: {
+      name: $("oName").value, nickname: $("oNick").value, preferred_language: $("oLang").value, location_note: $("oLoc").value,
+      family_name: $("oFName").value, family_relation: $("oFRel").value, family_about: $("oFAbout").value,
+      food: $("oFood").value, song: $("oSong").value, place: $("oPlace").value, hobby: $("oHobby").value, special: $("oSpecial").value } });
+    applyMe(await api("/auth/me")); toast(r.added ? "Saved. SMRITI now knows " + r.added + " new thing(s)." : "Saved.");
+    ["oLoc","oFName","oFAbout","oFood","oSong","oPlace","oHobby","oSpecial"].forEach(i => $(i).value = "");
+    if (setupReturn === "care") enterCare(); else screen("patient");
+  } catch (e) { $("oErr").textContent = e.message; if (e.status === 403) { screen("care"); showGate(); } }
+};
+
+/* ---------------- navigation ---------------- */
+$("navPatient").onclick = () => screen("patient");
+$("navCare").onclick = () => enterCare();
+
+/* ---------------- language pills ---------------- */
+document.querySelectorAll("#pills .pill").forEach(p => p.onclick = () => {
+  document.querySelectorAll("#pills .pill").forEach(x => x.classList.remove("active"));
+  p.classList.add("active"); $("lang").value = p.dataset.v;
+});
+
+/* ---------------- patient: record, send, play ---------------- */
+let audioCtx = null, procNode = null, srcNode = null, stream = null, pcmChunks = [], autoStop = null;
+/* "Keep talking" (switched on by the caregiver): after each reply SMRITI listens again by itself.
+   It stops after 2 quiet turns in a row, or when the patient taps "Stop talking". */
+let convo = false, silentTurns = 0, heardSpeech = false, lastLoud = 0, recStart = 0, nextTimer = null;
+const keepOn = () => !!(me && me.patient && me.patient.keep_talking);
+function idleLabel() { if (!audioCtx) $("micText").textContent = convo ? "Tap to stop" : keepOn() ? "Tap to start talking" : "Tap to speak"; }
+function endConvo(msg) {
+  convo = false; silentTurns = 0; clearTimeout(nextTimer);
+  $("endConvo").classList.add("hidden");
+  if (audioCtx) discardRec();
+  if (playing) { playing.pause(); playing = null; }
+  if (msg) $("status").textContent = msg;
+  idleLabel();
+}
+function scheduleListen(ms) {
+  clearTimeout(nextTimer);
+  if (!convo) return;
+  nextTimer = setTimeout(() => { if (convo && !audioCtx) toggleMic(true); }, ms);
+}
+function discardRec() {
+  clearTimeout(autoStop);
+  try { procNode.disconnect(); srcNode.disconnect(); stream.getTracks().forEach(t => t.stop()); audioCtx.close(); } catch (e) {}
+  audioCtx = null; body.classList.remove("listening");
+  $("mic").classList.remove("rec"); $("mic").querySelector(".icon").textContent = "🎤";
+}
+$("endConvo").onclick = () => endConvo("Okay. I am here whenever you want to talk.");
+const body = document.body;
+
+function setReply(text) {
+  $("reply").textContent = text || "";
+  $("replyWrap").classList.toggle("hidden", !text);
+}
+
+async function toggleMic(auto) {
+  if (auto !== true && convo) { endConvo("Okay. I am here whenever you want to talk."); return; }  // tap during a conversation = stop
+  if (audioCtx) { stopRec(); return; }
+  if (auto !== true && keepOn()) { convo = true; silentTurns = 0; $("endConvo").classList.remove("hidden"); }
+  try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } }); }
+  catch (e) { $("status").textContent = "Please allow the microphone, then tap again."; return; }
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  await audioCtx.resume();
+  pcmChunks = [];
+  srcNode = audioCtx.createMediaStreamSource(stream);
+  procNode = audioCtx.createScriptProcessor(4096, 1, 1);
+  heardSpeech = false; recStart = lastLoud = Date.now();
+  procNode.onaudioprocess = (e) => {
+    const d = e.inputBuffer.getChannelData(0);
+    pcmChunks.push(new Float32Array(d));
+    if (!convo) return;
+    let sum = 0; for (let i = 0; i < d.length; i++) sum += d[i] * d[i];
+    const now = Date.now();
+    if (Math.sqrt(sum / d.length) > 0.02) { heardSpeech = true; lastLoud = now; }
+    if (heardSpeech && now - lastLoud > 1600) stopRec();          // they finished speaking
+    else if (!heardSpeech && now - recStart > 8000) stopRec();    // nobody spoke
+  };
+  srcNode.connect(procNode); procNode.connect(audioCtx.destination); // output stays silent
+  body.classList.add("listening");
+  $("mic").classList.add("rec"); $("mic").querySelector(".icon").textContent = "⏹"; $("micText").textContent = convo ? "Listening…" : "Tap when done";
+  $("status").textContent = "I am listening…"; setReply(""); $("heard").textContent = "";
+  autoStop = setTimeout(stopRec, 15000); // Prisma accepts up to 60 s
+}
+
+async function stopRec() {
+  if (!audioCtx) return;
+  clearTimeout(autoStop);
+  const rate = audioCtx.sampleRate;
+  procNode.disconnect(); srcNode.disconnect();
+  stream.getTracks().forEach(t => t.stop());
+  await audioCtx.close(); audioCtx = null;
+  body.classList.remove("listening");
+  $("mic").classList.remove("rec"); $("mic").querySelector(".icon").textContent = "🎤"; idleLabel();
+
+  if (convo && !heardSpeech) {                       // a quiet turn: do not send anything to the server
+    if (++silentTurns >= 2) { endConvo("I will be quiet now. Tap the button whenever you want to talk."); return; }
+    $("status").textContent = "I am still here…"; scheduleListen(1500); return;
+  }
+  const wav = pcmToWav(pcmChunks, rate);
+  if (wav.error) {
+    $("status").textContent = wav.error;
+    if (convo) { if (++silentTurns >= 2) endConvo(""); else scheduleListen(1500); }
+    return;
+  }
+  silentTurns = 0;
+
+  body.classList.add("thinking"); $("mic").disabled = true; $("status").textContent = "One moment";
+  try {
+    const fd = new FormData();
+    fd.append("audio_file", wav.blob, "speech.wav");
+    fd.append("language_code", $("lang").value);
+    showResult(await api("/converse", { method: "POST", body: fd }));
+  } catch (e) {
+    $("status").textContent = "Sorry, something went wrong. Please try again.";
+    setReply(""); console.error(e); toast(e.message); endConvo("Sorry, something went wrong. Please tap to try again.");
+  } finally { $("mic").disabled = false; body.classList.remove("thinking"); }
+}
+
+/* Raw mic samples -> 16 kHz mono 16-bit WAV (the format Prisma accepts). No decodeAudioData needed. */
+function pcmToWav(chunks, inRate) {
+  const len = chunks.reduce((n, c) => n + c.length, 0);
+  const all = new Float32Array(len); let o = 0;
+  chunks.forEach(c => { all.set(c, o); o += c.length; });
+  const rate = 16000, ratio = inRate / rate, outLen = Math.floor(len / ratio);
+  if (outLen < rate * 0.5) return { error: "That was too short. Tap the button, speak, then tap again." };
+  const pcm = new Float32Array(outLen); let peak = 0;
+  for (let i = 0; i < outLen; i++) {
+    const s = Math.floor(i * ratio), e = Math.min(len, Math.max(s + 1, Math.floor((i + 1) * ratio)));
+    let sum = 0; for (let j = s; j < e; j++) sum += all[j];
+    pcm[i] = sum / (e - s); peak = Math.max(peak, Math.abs(pcm[i]));
+  }
+  if (peak < 0.005) return { error: "I could not hear anything. Please check your microphone and try again." };
+  const buf = new ArrayBuffer(44 + outLen * 2), v = new DataView(buf);
+  const w = (p, s) => [...s].forEach((c, i) => v.setUint8(p + i, c.charCodeAt(0)));
+  w(0, "RIFF"); v.setUint32(4, 36 + outLen * 2, true); w(8, "WAVEfmt "); v.setUint32(16, 16, true);
+  v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, rate, true); v.setUint32(28, rate * 2, true);
+  v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, "data"); v.setUint32(40, outLen * 2, true);
+  for (let i = 0; i < outLen; i++) { const s = Math.max(-1, Math.min(1, pcm[i])); v.setInt16(44 + i * 2, s < 0 ? s * 0x8000 : s * 0x7fff, true); }
+  return { blob: new Blob([buf], { type: "audio/wav" }) };
+}
+
+function showResult(d) {
+  $("status").textContent = "";
+  $("heard").textContent = d.transcript ? "You said: " + d.transcript : "";
+  setReply(d.reply);
+  if (d.audio_base64) {
+    lastAudio = "data:" + d.audio_mime + ";base64," + d.audio_base64;
+    $("replay").classList.remove("hidden");
+    play();
+  } else {
+    lastAudio = null; $("replay").classList.add("hidden");
+    if (d.tts_error) toast("Voice unavailable: " + d.tts_error);
+    scheduleListen(3000);                      // no voice to wait for: give them time to read, then listen
+  }
+}
+let playing = null;
+function play() {
+  if (!lastAudio) return;
+  if (playing) playing.pause();
+  const a = playing = new Audio(lastAudio);
+  a.onplay = () => body.classList.add("speaking");
+  a.onpause = a.onerror = () => body.classList.remove("speaking");
+  a.onended = () => { body.classList.remove("speaking"); scheduleListen(900); };  // wait a moment so it does not hear itself
+  a.play().catch(() => { $("status").textContent = "Tap “Hear it again” to listen."; });
+}
+$("replay").onclick = play;
+$("mic").onclick = () => toggleMic();
+
+$("typeForm").onsubmit = async (e) => {
+  e.preventDefault();
+  const text = $("typeBox").value.trim(); if (!text) return;
+  const lang = $("lang").value;
+  try { showResult(await api("/converse-text", { method: "POST", body: { text, language: lang === "auto" ? null : lang } })); $("typeBox").value = ""; }
+  catch (err) { toast(err.message); }
+};
+
+/* ---------------- caregiver area (PIN re-checked every time it is opened after 10 minutes) ---------------- */
+const TABS = [["Alerts", "Alerts"], ["Family", "Family"], ["Memories", "Memories"], ["Reminders", "Reminders"], ["Patient", "Patient details"], ["History", "History"]];
+let tab = "Alerts", data = {};
+
+function showGate() { screen("care"); $("pinGate").classList.remove("hidden"); $("careBody").classList.add("hidden"); $("gatePin").value = ""; $("gateErr").textContent = ""; setTimeout(() => $("gatePin").focus(), 50); }
+async function enterCare() {
+  screen("care");
+  try { await openCare(); } catch (e) { if (e.status === 403) showGate(); else if (e.status !== 401) toast(e.message); }
+}
+$("gateBtn").onclick = async () => {
+  try { await api("/auth/verify", { method: "POST", body: { pin: $("gatePin").value } }); enterCare(); }
+  catch (e) { $("gateErr").textContent = e.message; }
+};
+$("gatePin").addEventListener("keydown", (e) => { if (e.key === "Enter") $("gateBtn").click(); });
+
+async function openCare() {
+  data.full = await api("/api/me/full");
+  data.alerts = await api("/api/me/alerts");
+  if (tab === "History") data.hist = await api("/api/me/interactions");
+  $("pinGate").classList.add("hidden"); $("careBody").classList.remove("hidden");
+
+  const empty = !data.full.family.length && !data.full.memories.length;
+  $("setupBanner").innerHTML = empty ? `<div class="card banner"><div class="row"><div class="grow"><b>Nothing added about the patient yet.</b>
+    <div class="muted">Add a few names and favourite things so SMRITI can answer personally. It takes a minute.</div></div>
+    <button class="btn" onclick="startSetup()">Add details now</button></div></div>` : "";
+
+  const open = data.alerts.filter(a => !a.resolved).length;
+  $("tabs").innerHTML = TABS.map(([k, label]) => `<button class="${k === tab ? "active" : ""}" data-t="${k}">${label}${k === "Alerts" && open ? `<span class="badge">${open}</span>` : ""}</button>`).join("");
+  $("tabs").querySelectorAll("button").forEach(b => b.onclick = () => { tab = b.dataset.t; editing = null; adding = null; refresh(); });
+  $("tabContent").innerHTML = render[tab]();
+}
+const refresh = () => openCare().catch(e => { if (e.status === 403) showGate(); else if (e.status !== 401) toast(e.message); });
+function startSetup() { setupReturn = "care"; openSetupForm(); }
+
+const REL = ["daughter","son","wife","husband","mother","father","brother","sister","grandchild"];
+const CATS = { food: "Food", song: "Songs and music", place: "Places", hobby: "Hobbies", life_event: "Life story", other: "Other" };
+const LANGS = { "en-IN": "English", "hi-IN": "हिन्दी (Hindi)", "kn-IN": "ಕನ್ನಡ (Kannada)", "ta-IN": "தமிழ் (Tamil)" };
+const opts = (arr, sel) => arr.map(x => `<option ${x === sel ? "selected" : ""}>${x}</option>`).join("");
+const optsL = (map, sel) => Object.entries(map).map(([k, v]) => `<option value="${k}" ${k === sel ? "selected" : ""}>${v}</option>`).join("");
+const hoursSelect = (id, keepOption) => `<select id="${id}">${keepOption ? '<option value="">keep the time it has now</option>' : ""}
+  <option value="2">for 2 hours</option><option value="6" ${keepOption ? "" : "selected"}>for 6 hours</option><option value="12">for 12 hours</option><option value="24">for 1 day</option></select>`;
+const off = (a) => a ? "" : "off";
+const expired = (p) => p.status_text && p.status_expires && new Date(p.status_expires) < new Date();
+
+/* ---- one card at a time can be open for editing; one "+ Add" form at a time ---- */
+let editing = null, adding = null;                   // e.g. editing = "family:3", adding = "family"
+const isEd = (t, id) => editing === t + ":" + id;
+const rerender = () => { $("tabContent").innerHTML = render[tab](); };
+const startEdit = (t, id) => { editing = t + ":" + id; adding = null; rerender(); };
+const startAdd = (k) => { adding = k; editing = null; rerender(); };
+const cancelEdit = () => { editing = null; adding = null; rerender(); };
+const actions = (t, p) => `<div class="row"><button class="btn ghost" onclick="startEdit('${t}',${p.id})">✏️ Edit</button>
+  <button class="btn ghost" onclick="toggle('${t}',${p.id})">${p.approved ? "Turn off" : "Turn on"}</button>
+  <button class="btn danger" onclick="del('${t}',${p.id})">Delete</button></div>`;
+const saveCancel = (fn) => `<p class="row"><button class="btn" onclick="${fn}">Save</button><button class="btn ghost" onclick="cancelEdit()">Cancel</button></p>`;
+const formCard = (inner) => `<div class="card" style="border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)">${inner}</div>`;
+const addButton = (k, label) => adding === k ? "" : `<p><button class="btn big" onclick="startAdd('${k}')">+ ${label}</button></p>`;
+const offHint = (n) => n ? `<p class="hint">“Turn off” hides an item from the assistant without deleting it.</p>` : "";
+
+const render = {
+  Alerts() {
+    const a = data.alerts || [];
+    if (!a.length) return `<div class="card empty">🌿 No alerts yet. Everything is calm.</div>`;
+    return a.map(x => `<div class="card lvl-${x.level}-card ${x.resolved ? "off" : ""}">
+      <div class="row"><span class="tag lvl-${x.level}">${x.level}</span><b class="grow">${esc(x.reason)}</b>
+      ${x.resolved ? '<span class="muted">done</span>' : `<button class="btn" onclick="resolveAlert(${x.id})">Mark as done</button>`}</div>
+      <div class="muted">${esc(x.ts.replace("T"," "))} · said: “${esc(x.transcript)}”</div></div>`).join("");
+  },
+
+  Family() {
+    const f = data.full.family;
+    const addForm = adding === "family" ? formCard(`<b>Add a family member</b>
+      <div class="row"><div class="grow"><label>Name</label><input id="fName" style="width:100%"></div>
+      <div><label>Relation</label><select id="fRel">${opts(REL)}</select></div></div>
+      <label>One kind sentence about them (the patient may hear it)</label><input id="fDesc" style="width:100%" placeholder="She visits on Sundays.">
+      <label>Where are they right now? (optional)</label><input id="fStatus" style="width:100%" placeholder="is at work and will come home in the evening">
+      <label>How long is that true?</label>${hoursSelect("fHours", false)}
+      ${saveCancel("addFamily()")}`) : "";
+    return addButton("family", "Add a family member") + addForm +
+      (f.map(p => isEd("family", p.id) ? formCard(`<b>Edit ${esc(p.name)}</b>
+        <div class="row"><div class="grow"><label>Name</label><input id="eName" style="width:100%" value="${esc(p.name)}"></div>
+        <div><label>Relation</label><select id="eRel">${opts(REL, p.relation)}</select></div></div>
+        <label>One kind sentence about them</label><input id="eDesc" style="width:100%" value="${esc(p.description)}">
+        <label>Where are they right now? (clear the box to remove it)</label><input id="eStatus" style="width:100%" value="${esc(p.status_text)}">
+        <label>How long is that true?</label>${hoursSelect("eHours", !!p.status_text)}
+        ${saveCancel(`saveFamily(${p.id})`)}`)
+      : `<div class="card ${off(p.approved)}"><div class="item"><div>
+        <span class="tag">${p.relation}</span><b>${esc(p.name)}</b>
+        <div class="muted">${esc(p.description) || "—"}</div>
+        <div class="muted">Right now: ${esc(p.status_text) || "—"} ${p.status_text && p.status_expires ? (expired(p) ? "<b>(expired, not spoken)</b>" : "(until " + esc(p.status_expires.replace("T"," ")) + ")") : ""}</div></div>
+        ${actions("family", p)}</div></div>`).join("") || `<div class="card empty">No family added yet.</div>`) + offHint(f.length);
+  },
+
+  Memories() {
+    const m = data.full.memories;
+    const addForm = adding === "memories" ? formCard(`<b>Add a memory or favourite thing</b>
+      <label>What is it about?</label><select id="mCat">${optsL(CATS)}</select>
+      <label>Write it as a full sentence the patient will hear</label>
+      <textarea id="mText" rows="2" style="width:100%" placeholder="Your favourite food is dosa with coconut chutney."></textarea>
+      ${saveCancel("addMemory()")}`) : "";
+    return addButton("memories", "Add a memory") + addForm +
+      (m.map(x => isEd("memories", x.id) ? formCard(`<b>Edit memory</b>
+        <label>What is it about?</label><select id="eMCat">${optsL(CATS, x.category)}</select>
+        <label>Sentence the patient will hear</label><textarea id="eMText" rows="2" style="width:100%">${esc(x.text)}</textarea>
+        ${saveCancel(`saveMemory(${x.id})`)}`)
+      : `<div class="card ${off(x.approved)}"><div class="item"><div><span class="tag">${CATS[x.category] || x.category}</span>${esc(x.text)}</div>
+        ${actions("memories", x)}</div></div>`).join("") || `<div class="card empty">No memories added yet.</div>`) + offHint(m.length);
+  },
+
+  Reminders() {
+    const r = data.full.reminders;
+    const addForm = adding === "reminders" ? formCard(`<b>Add a reminder</b>
+      <label>What should the patient be told?</label><input id="rText" style="width:100%" placeholder="Meera will visit on Sunday.">
+      <label>Which day? (leave empty to repeat every day)</label><input id="rDate" type="date">
+      ${saveCancel("addReminder()")}`) : "";
+    return `<p class="hint" style="margin-top:0">The patient hears these when they ask about today's plan or tomorrow's plan. With no date, a reminder is repeated every day.</p>` +
+      addButton("reminders", "Add a reminder") + addForm +
+      (r.map(x => isEd("reminders", x.id) ? formCard(`<b>Edit reminder</b>
+        <label>What should the patient be told?</label><input id="eRText" style="width:100%" value="${esc(x.text)}">
+        <label>Which day? (empty = every day)</label><input id="eRDate" type="date" value="${esc(x.remind_date || "")}">
+        ${saveCancel(`saveReminder(${x.id})`)}`)
+      : `<div class="card ${off(x.approved)}"><div class="item"><div>${esc(x.text)}<div class="muted">${x.remind_date ? "on " + x.remind_date : "every day"}</div></div>
+        ${actions("reminders", x)}</div></div>`).join("") || `<div class="card empty">No reminders yet.</div>`) + offHint(r.length);
+  },
+
+  Patient() {
+    const p = data.full.patient;
+    return `<div class="card"><div class="grid2">
+      <div><label>Patient's name</label><input id="pName" style="width:100%" value="${esc(p.name)}"></div>
+      <div><label>What should SMRITI call them?</label><input id="pNick" style="width:100%" value="${esc(p.nickname)}" placeholder="e.g. Amma"></div></div>
+      <label>Language they speak most</label><select id="pLang" style="width:100%">${optsL(LANGS, p.preferred_language)}</select>
+      <label>Where do they live? (told to them when they feel lost)</label><input id="pLoc" style="width:100%" value="${esc(p.location_note)}" placeholder="You are at home.">
+      <label style="display:flex;gap:12px;align-items:flex-start;margin-top:16px;padding:14px;border:1px solid var(--line,#dde5e0);border-radius:12px;cursor:pointer">
+        <input type="checkbox" id="pKeep" ${p.keep_talking ? "checked" : ""} style="width:22px;height:22px;margin-top:2px">
+        <span><b>Keep talking</b><br><span class="muted">For when the patient needs company. After the patient taps the big button once, SMRITI keeps listening and answering by itself. It stops after two quiet turns, or when they tap “Stop talking”. Keep this off if you are unsure.</span></span></label>
+      <p><button class="btn big" onclick="saveProfile()">Save</button></p></div>`;
+  },
+
+  History() {
+    const h = data.hist || [];
+    return (h.length ? `<p><button class="btn danger" onclick="clearHist()">Clear history</button></p>` : "") +
+      (h.map(x => `<div class="card"><div class="muted">${esc(x.ts.replace("T"," "))}</div>
+        <div style="margin-top:8px">👤 ${esc(x.transcript)}</div><div style="margin-top:4px">🤖 ${esc(x.reply)}</div></div>`).join("") || `<div class="card empty">No conversations yet.</div>`);
+  },
+};
+
+async function act(fn, msg) {
+  try { await fn(); editing = null; adding = null; toast(msg || "Saved"); await openCare(); }
+  catch (e) { if (e.status === 403) showGate(); else if (e.status !== 401) toast(e.message); }
+}
+const resolveAlert = (id) => act(() => api(`/api/alerts/${id}/resolve`, { method: "POST" }), "Done");
+const toggle = (t, id) => act(() => api(`/api/${t}/${id}/toggle-approval`, { method: "POST" }), "Updated");
+const del = (t, id) => confirm("Delete this item?") && act(() => api(`/api/${t}/${id}`, { method: "DELETE" }), "Deleted");
+const clearHist = () => confirm("Clear all conversation history?") && act(() => api("/api/me/interactions", { method: "DELETE" }), "Cleared");
+
+const addFamily = () => act(() => api("/api/me/family", { method: "POST", body: {
+  name: $("fName").value, relation: $("fRel").value, description: $("fDesc").value,
+  status_text: $("fStatus").value, status_valid_hours: parseFloat($("fHours").value) || null } }), "Added");
+const saveFamily = (id) => act(() => api(`/api/family/${id}`, { method: "PUT", body: {
+  name: $("eName").value, relation: $("eRel").value, description: $("eDesc").value,
+  status_text: $("eStatus").value, status_valid_hours: parseFloat($("eHours").value) || null } }), "Saved");
+const addMemory = () => act(() => api("/api/me/memories", { method: "POST", body: { category: $("mCat").value, text: $("mText").value } }), "Added");
+const saveMemory = (id) => act(() => api(`/api/memories/${id}`, { method: "PUT", body: { category: $("eMCat").value, text: $("eMText").value } }), "Saved");
+const addReminder = () => act(() => api("/api/me/reminders", { method: "POST", body: { text: $("rText").value, remind_date: $("rDate").value || null } }), "Added");
+const saveReminder = (id) => act(() => api(`/api/reminders/${id}`, { method: "PUT", body: { text: $("eRText").value, remind_date: $("eRDate").value || null } }), "Saved");
+const saveProfile = () => act(async () => {
+  await api("/api/me/patient", { method: "PUT", body: { name: $("pName").value, nickname: $("pNick").value, preferred_language: $("pLang").value, location_note: $("pLoc").value, keep_talking: $("pKeep").checked } });
+  applyMe(await api("/auth/me"));
+}, "Saved");
+
+
+/* ---------------- start-up: stay logged in on this device ---------------- */
+(async function boot() {
+  token = load("smriti_token");
+  if (!token) { screen("auth"); return; }
+  try { applyMe(await api("/auth/me")); screen("patient"); }
+  catch (e) { forceLogout(); }
+})();
+</script>
+</body>
+</html>
